@@ -18,8 +18,15 @@ window.addEventListener("DOMContentLoaded", () => {
       ['blank', 'blank', 'blank', 'blank', 'destination', 'block'],
     ];
     console.log(gridData)
-    let out = invoke('test_vec', {arr:gridData})
-    console.log(out)
+    console.log("dfs: ")
+    let dfs = invoke('dfs_solve', {arr:gridData})
+    console.log(dfs)
+
+    console.log("---------------------")
+    console.log("bfs: ")
+    let bfs = invoke('bfs_solve', {arr:gridData})
+    console.log(bfs)
+    
 
 
 

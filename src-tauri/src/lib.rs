@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::{collections::VecDeque, time::Instant};
 
 use serde::{Deserialize, Serialize};
 
@@ -19,6 +19,7 @@ pub fn ser_to_cell(arr: &Vec<Vec<String>>) -> Vec<Vec<CellType>> {
     out
 }
 
+#[allow(dead_code)]
 pub fn ser_to_string(arr: &Vec<Vec<CellType>>) -> Vec<Vec<String>> {
     let mut out: Vec<Vec<String>> = vec![vec![String::new(); arr[0].len()]; arr.len()];
     for i in 0..arr.len() {
@@ -45,13 +46,14 @@ pub enum CellType {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-enum Error {
-    DeadEnd,
-}
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Point {
     pub x: usize,
     pub y: usize,
+}
+impl Point {
+    pub fn as_tuple(&self) -> (usize, usize) {
+        (self.x, self.y)
+    }
 }
 
 pub struct Grid {
@@ -78,7 +80,7 @@ impl Grid {
     #[doc = "dfs function for finding path"]
     #[doc = "\nThe output is (path, time)"]
     /// asdas
-    fn dfs(&mut self, start_point: Point) -> Option<(Vec<Point>, f32)> {
+    pub fn dfs(&mut self, start_point: Point) -> Option<(Vec<Point>, f32)> {
         let time = Instant::now();
         let mut stack = Vec::<Point>::new();
         let mut visited: Vec<Vec<bool>> = vec![vec![false; self.width]; self.height];
@@ -93,6 +95,12 @@ impl Grid {
             visited[y][x] = true;
             path.push(Point { x: y, y: x });
 
+            // removing the start_point from the path
+            // doing it now so it could be done in O(1) exept O(N)
+            if x == start_point.x && y == start_point.y {
+                path.pop();
+            }
+
             if self.cells[y][x] == CellType::Destination {
                 // the path is currenly transvesed
                 let mut path_num = 1;
@@ -101,6 +109,8 @@ impl Grid {
                     path_num += 1;
                 }
                 let duration = time.elapsed();
+                // removing the destination_point from the path
+                path.pop();
                 return Some((path, duration.as_secs_f32()));
             }
 
@@ -126,7 +136,66 @@ impl Grid {
         }
         None // No path found
     }
-    pub fn solve(&mut self, start: Point) {
-        self.dfs(start);
+
+    #[doc = "BFS function for finding path"]
+    #[doc = "The output is (path, time)"]
+    pub fn bfs(&mut self, start_point: Point) -> Option<(Vec<Point>, f32)> {
+        let time = Instant::now();
+        let mut queue = VecDeque::<Point>::new();
+        let mut visited = vec![vec![false; self.width]; self.height];
+        let mut path = Vec::<Point>::new();
+
+        queue.push_back(start_point);
+
+        while let Some(current) = queue.pop_front() {
+            let x = current.x;
+            let y = current.y;
+
+            visited[y][x] = true;
+            path.push(Point { x: y, y: x });
+
+            // removing the start_point from the path
+            // doing it now so it could be done in O(1) exept O(N)
+            if x == start_point.x && y == start_point.y {
+                path.pop();
+            }
+
+            if self.cells[y][x] == CellType::Destination {
+                // Path is found, mark the cells in the path
+                let mut path_num = 1;
+                for node in &path {
+                    self.cells[node.x][node.y] = CellType::Visited(path_num);
+                    path_num += 1;
+                }
+                let duration = time.elapsed();
+                // removing the destination_point from the path
+                path.pop();
+                return Some((path, duration.as_secs_f32()));
+            }
+
+            let directions = [
+                (0, -1), // Left
+                (1, 0),  // Down
+                (0, 1),  // Right
+                (-1, 0), // Up
+            ];
+
+            for (dx, dy) in &directions {
+                let new_point = Point {
+                    x: (x as isize + dx) as usize,
+                    y: (y as isize + dy) as usize,
+                };
+
+                if self.is_within_bounds(new_point)
+                    && !visited[new_point.y][new_point.x]
+                    && self.cells[new_point.y][new_point.x] != CellType::Block
+                {
+                    queue.push_back(new_point);
+                    visited[new_point.y][new_point.x] = true; // Mark as visited
+                }
+            }
+        }
+
+        None // No path found
     }
 }
