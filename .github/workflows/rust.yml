@@ -16,6 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: install tauri
+      run: cargo install create-tauri-app --locked
     - name: Build
       run: cargo tauri build --verbose
     - name: Run tests
