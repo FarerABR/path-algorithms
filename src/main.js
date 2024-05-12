@@ -27,6 +27,10 @@ window.addEventListener("DOMContentLoaded", () => {
     let bfs = invoke('bfs_solve', {arr:gridData})
     console.log(bfs)
     
+    console.log("---------------------")
+    console.log("a star: ")
+    let astar = invoke('a_star_solve', {arr:gridData})
+    console.log(astar)
 
 
 
