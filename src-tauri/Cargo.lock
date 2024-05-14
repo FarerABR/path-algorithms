@@ -1733,6 +1733,7 @@ dependencies = [
 name = "path-algorithms"
 version = "0.0.1"
 dependencies = [
+ "rand 0.8.5",
  "serde",
  "serde_json",
  "tauri",
