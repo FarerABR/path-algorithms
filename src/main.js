@@ -1,10 +1,18 @@
 const { invoke } = window.__TAURI__.tauri;
 
-document.getElementById("btn_randgrid").addEventListener("click", random_grid);
-document.getElementById("btn_clear").addEventListener("click", clear_all);
-document.getElementById("btn_solve").addEventListener("click", solve);
+let grid_btn = document.getElementById("btn_randgrid");
+let clear_btn = document.getElementById("btn_clear");
+let solve_btn = document.getElementById("btn_solve");
+grid_btn.addEventListener("click", random_grid);
+clear_btn.addEventListener("click", clear_all);
+solve_btn.addEventListener("click", solve);
+// document.getElementById("btn_randgrid").addEventListener("click", random_grid);
+// document.getElementById("btn_clear").addEventListener("click", clear_all);
+// document.getElementById("btn_solve").addEventListener("click", solve);
+
 const select_alg = document.getElementById("algs");
-// const algorithm = alg.value;
+let open_nodes = document.getElementById("lbl_open");
+let visit_nodes = document.getElementById("lbl_visit");
 
 // Canvas and context for visualization
 const mazeCanvas = document.getElementById("maze-canvas");
@@ -23,6 +31,7 @@ let cellSize = Math.min(
 window.addEventListener("DOMContentLoaded", () => {
 	points.start = { x: 0, y: 0 };
 	points.destination = { x: 1, y: 1 };
+	disable_btns();
 	random_grid();
 });
 
@@ -30,8 +39,6 @@ let points = {};
 
 // Add event listener to the maze canvas
 mazeCanvas.addEventListener("click", function (event) {
-	// clear_all();
-	console.log("mouse!");
 	// Remove any markings except walls
 	for (let y = 0; y < mazeHeight; y++) {
 		for (let x = 0; x < mazeWidth; x++) {
@@ -64,7 +71,6 @@ mazeCanvas.addEventListener("click", function (event) {
 				maze[cellY][cellX] = "block";
 				break;
 			case "start":
-				console.log("start: ", points.start);
 				maze[points.start.x][points.start.y] = "blank";
 				// Update points object with start point coordinates
 				points.start.y = cellX;
@@ -72,7 +78,6 @@ mazeCanvas.addEventListener("click", function (event) {
 				maze[cellY][cellX] = "start";
 				break;
 			case "dest":
-				console.log("start: ", points.destination);
 				maze[points.destination.x][points.destination.y] = "blank";
 				// Update points object with destination point coordinates
 				points.destination.y = cellX;
@@ -91,15 +96,28 @@ mazeCanvas.addEventListener("click", function (event) {
 		}
 	}
 });
+function disable_btns() {
+	grid_btn.toggleAttribute("disabled");
+	clear_btn.toggleAttribute("disabled");
+	solve_btn.toggleAttribute("disabled");
+}
+function enable_btns() {
+	grid_btn.disabled = false;
+	clear_btn.disabled = false;
+	solve_btn.disabled = false;
+}
 
 async function solve() {
+	disable_btns();
+	open_nodes.textContent = "";
+	visit_nodes.textContent = "";
 	clear_canvas();
 	drawMaze(maze);
 	let alg = select_alg.value;
-	console.log(alg);
-	console.log(maze);
-	console.log(points.start.x, points.start.y);
-	console.log(points.destination.x, points.destination.y);
+	// console.log(alg);
+	// console.log(maze);
+	// console.log(points.start.x, points.start.y);
+	// console.log(points.destination.x, points.destination.y);
 	let algorithm;
 	if (alg === "dfs") {
 		algorithm = await invoke("dfs_solve", {
@@ -120,6 +138,7 @@ async function solve() {
 	}
 	if (algorithm === null || algorithm[0].length === 0) {
 		alert("No path found");
+		enable_btns();
 	} else if (algorithm.length === 3) {
 		// a_start
 		const path = algorithm[0];
@@ -135,6 +154,7 @@ async function solve() {
 		console.log("Time : ", time);
 		draw_path(path);
 	}
+	// enable_btns();
 }
 
 async function random_grid() {
@@ -171,7 +191,7 @@ function clear_all() {
 }
 
 // Function to draw the maze on the canvas
-function drawMaze(maze, visitedNodes) {
+function drawMaze(maze) {
 	for (let y = 0; y < mazeHeight; y++) {
 		for (let x = 0; x < mazeWidth; x++) {
 			const centerX = (x + 0.5) * cellSize;
@@ -183,13 +203,27 @@ function drawMaze(maze, visitedNodes) {
 				ctx.strokeStyle = "gray";
 				ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
 			} else {
-				ctx.strokeStyle = "#191825";
-				ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
+				ctx.fillStyle = "black"; // Wall
+				ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+				ctx.strokeStyle = "#01230d";
+				ctx.strokeRect(
+					x * cellSize,
+					y * cellSize,
+					cellSize - cellSize / 10,
+					cellSize - cellSize / 10
+				);
 			}
 
 			if (maze[y][x] === "block") {
-				ctx.fillStyle = "#191825"; // Wall
+				ctx.fillStyle = "black"; // Wall
 				ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+				ctx.fillStyle = "#01230d"; // Wall
+				ctx.fillRect(
+					x * cellSize,
+					y * cellSize,
+					cellSize - cellSize / 10,
+					cellSize - cellSize / 10
+				);
 			} else if (maze[y][x] === "start") {
 				ctx.fillStyle = "white"; // Empty cell
 				ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
@@ -234,13 +268,15 @@ function drawMaze(maze, visitedNodes) {
 			}
 		}
 	}
+	// disable_btns();
 }
 
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 
 async function draw_path(path) {
-	console.log(path);
+	// console.log(path);
 	for (let i = 1; i < path.length + 1; i++) {
+		open_nodes.textContent = i;
 		const x = path[i - 1][1];
 		const y = path[i - 1][0];
 
@@ -248,10 +284,7 @@ async function draw_path(path) {
 		const centerY = (y + 0.5) * cellSize;
 		const radius = 0.425 * cellSize; // Adjust the radius as needed
 
-		// ctx.strokeStyle = "white";
-		// ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
-
-		ctx.fillStyle = "lightblue";
+		ctx.fillStyle = "#9999ff";
 		ctx.beginPath();
 		ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
 		ctx.fill();
@@ -269,10 +302,12 @@ async function draw_path(path) {
 
 		await timer(50);
 	}
+	enable_btns();
 }
 async function draw_visited(visited) {
-	console.log(visited);
+	// console.log(visited);
 	for (let i = 1; i < visited.length + 1; i++) {
+		visit_nodes.textContent = i;
 		const x = visited[i - 1][1];
 		const y = visited[i - 1][0];
 
@@ -280,21 +315,12 @@ async function draw_visited(visited) {
 		const centerY = (y + 0.5) * cellSize;
 		const radius = 0.425 * cellSize; // Adjust the radius as needed
 
-		ctx.fillStyle = "darkblue";
+		ctx.fillStyle = "#99cc00";
+
 		ctx.beginPath();
 		ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
 		ctx.fill();
 
-		ctx.font = "10px Arial";
-		ctx.fillStyle = "white";
-		// Calculate the width of the text
-		const textWidth = ctx.measureText(i).width;
-		// Calculate the x-coordinate to center the text horizontally within the cell
-		const textX = x * cellSize + (cellSize - textWidth) / 2;
-		// Calculate the y-coordinate to center the text vertically within the cell
-		const textY = y * cellSize + cellSize / 2 + 10 / 4;
-		// Draw the text
-		ctx.fillText(i, textX, textY);
 		await timer(50);
 	}
 }

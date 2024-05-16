@@ -48,6 +48,7 @@ async fn a_star_solve(
     dest: (usize, usize),
 ) -> Option<(Vec<(usize, usize)>, Vec<(usize, usize)>, f32)> {
     let mut grid = Grid::new(ser_to_cell(&arr));
+    grid.swap_dim();
     let start = Point {
         x: start.0,
         y: start.1,

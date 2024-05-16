@@ -4,7 +4,7 @@
 		<meta charset="UTF-8" />
 		<link rel="stylesheet" href="styles.css" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Tauri App</title>
+		<title>Path Finder</title>
 		<script type="module" src="/main.js" defer></script>
 		<style>
 			.logo.vanilla:hover {
@@ -44,9 +44,9 @@
 			<div class="d-flex justify-content-center mb-2">
 				<canvas id="maze-canvas" width="900" height="600"></canvas>
 			</div>
-			<button class="button" id="btn_randgrid">Generate random grid</button>
-			<button class="button" id="btn_clear">Clear</button>
-			<button class="button" id="btn_solve">Solve</button>
+			<button class="button" id="btn_randgrid" disabled >Generate random grid</button>
+			<button class="button" id="btn_clear" disabled>Clear</button>
+			<button class="button" id="btn_solve" disabled>Solve</button>
 			<select name="algorithms" id="algs">
   				<option value="dfs">DFS</option>
   				<option value="bfs">BFS</option>
@@ -57,6 +57,14 @@
   				<option value="start">Start</option>
   				<option value="dest">Destination</option>
 			</select>
+			<div>
+				<label>Nodes opened: </label>
+				<label id="lbl_open"></label>
+			</div>
+			<div>
+				<label>Nodes visited: </label>
+				<label id="lbl_visit"></label>
+			</div>
 		</div>
 	</body>
 </html>

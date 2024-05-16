@@ -1,5 +1,6 @@
 use std::{
-    collections::{HashMap, VecDeque},
+    cmp::Reverse,
+    collections::{BinaryHeap, HashMap, VecDeque},
     hash::Hash,
     time::Instant,
 };
@@ -94,6 +95,11 @@ impl Grid {
             width,
             height,
         }
+    }
+    pub fn swap_dim(&mut self) {
+        let tmp = self.height;
+        self.height = self.width;
+        self.width = tmp;
     }
 
     pub fn random_grid(width: usize, height: usize) -> Self {
@@ -307,7 +313,6 @@ impl Grid {
             y: dest.x,
         };
         while let Some(node) = cells[&current].parent {
-            println!("current node: {:?}", current);
             current = node;
             path.push(Point {
                 x: current.x,
@@ -322,14 +327,14 @@ impl Grid {
     /// a_star path finding algorithm
     pub fn a_star(&mut self, src: Point, dest: Point) -> Option<(Vec<Point>, Vec<Point>, f32)> {
         let time = Instant::now();
-        let mut open_list = Vec::<(usize, Point)>::new();
-        // let mut closed_list = vec![vec![false; self.width]; self.height];
+        // let mut open_list = Vec::<(usize, Point)>::new();
+        let mut open_list = BinaryHeap::<Reverse<(usize, Point)>>::new();
         let mut visited = Vec::<Point>::new();
 
         let mut cells = HashMap::<Point, Cell>::new();
         for i in 0..self.cells.len() {
             for j in 0..self.cells[0].len() {
-                cells.insert(Point { x: j, y: i }, Cell::new());
+                cells.insert(Point { x: i, y: j }, Cell::new());
             }
         }
         cells.insert(
@@ -341,7 +346,7 @@ impl Grid {
                 parent: None,
             },
         );
-        open_list.push((
+        open_list.push(Reverse((
             Self::heuristic(
                 src,
                 Point {
@@ -350,16 +355,12 @@ impl Grid {
                 },
             ),
             src,
-        ));
-
-        println!("start: {:?}", src);
-        println!("dest:  {:?}", dest);
-        // while let Some(x) = open_list.pop() {
-        while open_list.len() > 0 {
-            let current = open_list.remove(0);
-            // println!("poping this NODE: {:?}", current.1);
+        )));
+        while let Some(x) = open_list.pop() {
+            // while open_list.len() > 0 {
+            // let current = open_list.remove(0);
+            let current = x.0;
             let Point { x, y } = current.1;
-            // closed_list[y][x] = true;
             if !visited.contains(&Point { x: x, y: y }) {
                 visited.push(Point { x: x, y: y });
             }
@@ -426,13 +427,11 @@ impl Grid {
                     directions.swap(i, min_index);
                 }
             }
-            // println!("{:?}", directions);
             for (dx, dy) in &directions {
                 let new_x = (x as isize + dx) as usize;
                 let new_y = (y as isize + dy) as usize;
 
                 if self.is_within_bounds(Point { x: new_x, y: new_y })
-                    // && !closed_list[new_y][new_x]
                     && (self.cells[new_x][new_y] == CellType::Blank
                         || self.cells[new_x][new_y] == CellType::Destination)
                 {
@@ -461,11 +460,12 @@ impl Grid {
                                 parent: Some(current.1),
                             },
                         );
-                        if !open_list.iter().any(|x| x.1 == new_point) {
-                            open_list.push((tentative_f_score, new_point));
-                            open_list.sort_by_key(|&(f_score, _)| f_score);
-                            // open_list.reverse();
-                            // println!("{:?}", open_list);
+
+                        if !open_list.iter().any(|x| x.0 .1 == new_point) {
+                            // if !open_list.iter().any(|x| x.1 == new_point) {
+                            // open_list.push((tentative_f_score, new_point));
+                            // open_list.sort_by_key(|&(f_score, _)| f_score);
+                            open_list.push(Reverse((tentative_f_score, new_point)));
                         }
                     }
                 }
