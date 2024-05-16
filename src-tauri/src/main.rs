@@ -53,8 +53,8 @@ async fn a_star_solve(
         y: start.1,
     };
     let dest = Point {
-        x: dest.0,
-        y: dest.1,
+        x: dest.1,
+        y: dest.0,
     };
     if let Some(x) = grid.a_star(start, dest) {
         return Some((

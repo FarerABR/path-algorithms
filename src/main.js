@@ -126,7 +126,7 @@ async function solve() {
 		const visited = algorithm[1];
 		const time = algorithm[2];
 		console.log("Time : ", time);
-		draw_visited(visited);
+		await draw_visited(visited);
 		draw_path(path);
 	} else {
 		// dfs and bfs
@@ -235,17 +235,10 @@ function drawMaze(maze, visitedNodes) {
 		}
 	}
 }
-function delay(ms) {
-	const start = Date.now();
-	while (Date.now() - start < ms);
-}
 
-function draw_path(path) {
-	// Define a delay function
-	// const delay = (ms) => {
-	// 	const start = Date.now();
-	// 	while (Date.now() - start < ms);
-	// };
+const timer = (ms) => new Promise((res) => setTimeout(res, ms));
+
+async function draw_path(path) {
 	console.log(path);
 	for (let i = 1; i < path.length + 1; i++) {
 		const x = path[i - 1][1];
@@ -274,10 +267,10 @@ function draw_path(path) {
 		// Draw the text
 		ctx.fillText(i, textX, textY);
 
-		// delay(10);
+		await timer(50);
 	}
 }
-function draw_visited(visited) {
+async function draw_visited(visited) {
 	console.log(visited);
 	for (let i = 1; i < visited.length + 1; i++) {
 		const x = visited[i - 1][1];
@@ -287,13 +280,13 @@ function draw_visited(visited) {
 		const centerY = (y + 0.5) * cellSize;
 		const radius = 0.425 * cellSize; // Adjust the radius as needed
 
-		ctx.fillStyle = "pink";
+		ctx.fillStyle = "darkblue";
 		ctx.beginPath();
 		ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
 		ctx.fill();
 
 		ctx.font = "10px Arial";
-		ctx.fillStyle = "black";
+		ctx.fillStyle = "white";
 		// Calculate the width of the text
 		const textWidth = ctx.measureText(i).width;
 		// Calculate the x-coordinate to center the text horizontally within the cell
@@ -302,5 +295,6 @@ function draw_visited(visited) {
 		const textY = y * cellSize + cellSize / 2 + 10 / 4;
 		// Draw the text
 		ctx.fillText(i, textX, textY);
+		await timer(50);
 	}
 }

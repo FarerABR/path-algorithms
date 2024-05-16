@@ -306,12 +306,12 @@ impl Grid {
             x: dest.y,
             y: dest.x,
         };
-
         while let Some(node) = cells[&current].parent {
+            println!("current node: {:?}", current);
             current = node;
             path.push(Point {
-                x: current.y,
-                y: current.x,
+                x: current.x,
+                y: current.y,
             });
         }
         // remove the start
@@ -322,7 +322,6 @@ impl Grid {
     /// a_star path finding algorithm
     pub fn a_star(&mut self, src: Point, dest: Point) -> Option<(Vec<Point>, Vec<Point>, f32)> {
         let time = Instant::now();
-        // let mut open_list = BinaryHeap::<Reverse<(usize, Point)>>::new();
         let mut open_list = Vec::<(usize, Point)>::new();
         // let mut closed_list = vec![vec![false; self.width]; self.height];
         let mut visited = Vec::<Point>::new();
@@ -334,7 +333,7 @@ impl Grid {
             }
         }
         cells.insert(
-            Point { x: src.y, y: src.x },
+            src,
             Cell {
                 f: 0,
                 g: 0,
@@ -342,49 +341,47 @@ impl Grid {
                 parent: None,
             },
         );
-
-        // open_list.push(Reverse((0, Point { x: src.y, y: src.x })));
         open_list.push((
-            Self::heuristic(Point { x: src.y, y: src.x }, dest),
-            Point { x: src.y, y: src.x },
+            Self::heuristic(
+                src,
+                Point {
+                    x: dest.y,
+                    y: dest.x,
+                },
+            ),
+            src,
         ));
-        while let Some(x) = open_list.pop() {
-            let current = x;
+
+        println!("start: {:?}", src);
+        println!("dest:  {:?}", dest);
+        // while let Some(x) = open_list.pop() {
+        while open_list.len() > 0 {
+            let current = open_list.remove(0);
+            // println!("poping this NODE: {:?}", current.1);
             let Point { x, y } = current.1;
             // closed_list[y][x] = true;
-            if !visited.contains(&Point {
-                x: current.1.y,
-                y: current.1.x,
-            }) {
-                visited.push(Point {
-                    x: current.1.y,
-                    y: current.1.x,
-                });
+            if !visited.contains(&Point { x: x, y: y }) {
+                visited.push(Point { x: x, y: y });
             }
 
-            if self.cells[y][x] == CellType::Destination {
+            if self.cells[x][y] == CellType::Destination {
                 // Path is found, mark the cells in the path
                 let path = Self::construct_path(cells, dest);
                 // removing start and destination from the visited
-                if visited.contains(&Point { x: src.x, y: src.y }) {
-                    visited.remove(
-                        visited
-                            .iter()
-                            .position(|&i| i == Point { x: src.x, y: src.y })
-                            .unwrap(),
-                    );
+                if visited.contains(&src) {
+                    visited.remove(visited.iter().position(|&i| i == src).unwrap());
                 }
                 if visited.contains(&Point {
-                    x: dest.x,
-                    y: dest.y,
+                    x: dest.y,
+                    y: dest.x,
                 }) {
                     visited.remove(
                         visited
                             .iter()
                             .position(|&i| {
                                 i == Point {
-                                    x: dest.x,
-                                    y: dest.y,
+                                    x: dest.y,
+                                    y: dest.x,
                                 }
                             })
                             .unwrap(),
@@ -406,7 +403,10 @@ impl Grid {
                         x: (x as isize + i.0) as usize,
                         y: (y as isize + i.1) as usize,
                     },
-                    dest,
+                    Point {
+                        x: dest.y,
+                        y: dest.x,
+                    },
                 ));
             }
             for i in 0..heu.len() {
@@ -426,20 +426,27 @@ impl Grid {
                     directions.swap(i, min_index);
                 }
             }
-            println!("{:?}", directions);
+            // println!("{:?}", directions);
             for (dx, dy) in &directions {
                 let new_x = (x as isize + dx) as usize;
                 let new_y = (y as isize + dy) as usize;
 
                 if self.is_within_bounds(Point { x: new_x, y: new_y })
                     // && !closed_list[new_y][new_x]
-                    && (self.cells[new_y][new_x] == CellType::Blank
-                        || self.cells[new_y][new_x] == CellType::Destination)
+                    && (self.cells[new_x][new_y] == CellType::Blank
+                        || self.cells[new_x][new_y] == CellType::Destination)
                 {
                     let new_point = Point { x: new_x, y: new_y };
 
-                    let tentative_g_score = cells.get(&current.1).unwrap().g + 1;
-                    let tentative_h_score = Self::heuristic(Point { x: new_x, y: new_y }, dest);
+                    let tentative_g_score =
+                        usize::wrapping_add(cells.get(&current.1).unwrap().g, 1);
+                    let tentative_h_score = Self::heuristic(
+                        Point { x: new_x, y: new_y },
+                        Point {
+                            x: dest.y,
+                            y: dest.x,
+                        },
+                    );
                     let tentative_f_score = tentative_g_score + tentative_h_score;
 
                     if cells.get(&new_point).unwrap().g == usize::MAX
@@ -454,13 +461,11 @@ impl Grid {
                                 parent: Some(current.1),
                             },
                         );
-                        // if !open_list
-                        //     .iter()
-                        //     .any(|heap_item| heap_item.0 .1 == new_point)
                         if !open_list.iter().any(|x| x.1 == new_point) {
-                            // open_list.push(Reverse((tentative_f_score, new_point)));
                             open_list.push((tentative_f_score, new_point));
                             open_list.sort_by_key(|&(f_score, _)| f_score);
+                            // open_list.reverse();
+                            // println!("{:?}", open_list);
                         }
                     }
                 }
