@@ -1,14 +1,10 @@
 use std::{
-    cell,
-    cmp::Reverse,
-    collections::{BinaryHeap, HashMap, VecDeque},
+    collections::{HashMap, VecDeque},
     hash::Hash,
     time::Instant,
 };
 
-use rand::{rngs::StdRng, Rng};
-use serde::{Deserialize, Serialize};
-
+use rand::Rng;
 pub fn ser_to_cell(arr: &Vec<Vec<String>>) -> Vec<Vec<CellType>> {
     let mut out: Vec<Vec<CellType>> = vec![vec![CellType::Blank; arr[0].len()]; arr.len()];
 
@@ -52,7 +48,7 @@ pub enum CellType {
     Visited(u32), // Includes path number
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Eq, Hash, Ord, PartialOrd)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub struct Point {
     pub x: usize,
     pub y: usize,
@@ -65,6 +61,7 @@ impl Point {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 struct Cell {
     f: usize,
     h: usize,
@@ -99,7 +96,7 @@ impl Grid {
         }
     }
 
-    pub fn construct_grid(width: usize, height: usize) -> Self {
+    pub fn random_grid(width: usize, height: usize) -> Self {
         let mut grid = vec![vec![CellType::Blank; height]; width];
         for i in 0..width {
             grid[i][0] = CellType::Block;
@@ -139,21 +136,19 @@ impl Grid {
 
         let block_num = rng.gen_range(1..((width - 2) * (height - 2) / 2));
         let mut placed = 0;
-        println!("blocks: {}", block_num);
         while placed < block_num {
             let (x, y) = (
                 rng.gen_range(0..(width - 1)),
                 rng.gen_range(0..(height - 1)),
             );
-            println!("placed: {}", placed);
             if grid[x][y] == CellType::Blank {
                 grid[x][y] = CellType::Block;
                 placed += 1;
             }
         }
 
-        println!("{:?}", grid);
-        Grid {
+        // println!("{:?}", grid);
+        Self {
             cells: grid,
             width: width - 1,
             height: height - 1,
@@ -169,34 +164,40 @@ impl Grid {
     pub fn dfs(&mut self, start_point: Point) -> Option<(Vec<Point>, f32)> {
         let time = Instant::now();
         let mut stack = Vec::<Point>::new();
-        let mut visited: Vec<Vec<bool>> = vec![vec![false; self.width]; self.height];
+        let mut visited = vec![vec![false; self.width]; self.height];
         let mut path = Vec::<Point>::new();
 
-        stack.push(start_point);
+        stack.push(Point {
+            x: start_point.y,
+            y: start_point.x,
+        });
 
         while let Some(current) = stack.pop() {
             let x = current.x;
             let y = current.y;
 
             visited[y][x] = true;
-            path.push(Point { x: y, y: x });
+            if !path.contains(&Point { x: y, y: x }) {
+                path.push(Point { x: y, y: x });
+            }
 
             // removing the start_point from the path
-            // doing it now so it could be done in O(1) exept O(N)
-            if x == start_point.x && y == start_point.y {
+            // doing it now so it could be done in O(1) instead of O(N)
+            if x == start_point.y && y == start_point.x {
                 path.pop();
             }
 
+            // reached destination
             if self.cells[y][x] == CellType::Destination {
                 // the path is currenly transvesed
+                // removing the destination_point from the path
+                path.pop();
                 let mut path_num = 1;
                 for node in &path {
                     self.cells[node.x][node.y] = CellType::Visited(path_num);
                     path_num += 1;
                 }
                 let duration = time.elapsed();
-                // removing the destination_point from the path
-                path.pop();
                 return Some((path, duration.as_secs_f32()));
             }
 
@@ -212,11 +213,12 @@ impl Grid {
                     x: (x as isize + dx) as usize,
                     y: (y as isize + dy) as usize,
                 };
-                if self.is_within_bounds(new_point)
-                    && !visited[new_point.y][new_point.x]
-                    && self.cells[new_point.y][new_point.x] != CellType::Block
-                {
-                    stack.push(new_point)
+                if self.is_within_bounds(new_point) && !visited[new_point.y][new_point.x] {
+                    if self.cells[new_point.y][new_point.x] == CellType::Blank
+                        || self.cells[new_point.y][new_point.x] == CellType::Destination
+                    {
+                        stack.push(new_point)
+                    }
                 }
             }
         }
@@ -231,31 +233,37 @@ impl Grid {
         let mut visited = vec![vec![false; self.width]; self.height];
         let mut path = Vec::<Point>::new();
 
-        queue.push_back(start_point);
+        queue.push_back(Point {
+            x: start_point.y,
+            y: start_point.x,
+        });
 
         while let Some(current) = queue.pop_front() {
             let x = current.x;
             let y = current.y;
 
             visited[y][x] = true;
-            path.push(Point { x: y, y: x });
+            if !path.contains(&Point { x: y, y: x }) {
+                path.push(Point { x: y, y: x });
+            }
 
             // removing the start_point from the path
             // doing it now so it could be done in O(1) exept O(N)
-            if x == start_point.x && y == start_point.y {
+            if x == start_point.y && y == start_point.x {
                 path.pop();
             }
 
             if self.cells[y][x] == CellType::Destination {
                 // Path is found, mark the cells in the path
+
+                // removing the destination_point from the path
+                path.pop();
                 let mut path_num = 1;
                 for node in &path {
                     self.cells[node.x][node.y] = CellType::Visited(path_num);
                     path_num += 1;
                 }
                 let duration = time.elapsed();
-                // removing the destination_point from the path
-                path.pop();
                 return Some((path, duration.as_secs_f32()));
             }
 
@@ -272,12 +280,13 @@ impl Grid {
                     y: (y as isize + dy) as usize,
                 };
 
-                if self.is_within_bounds(new_point)
-                    && !visited[new_point.y][new_point.x]
-                    && self.cells[new_point.y][new_point.x] != CellType::Block
-                {
-                    queue.push_back(new_point);
-                    visited[new_point.y][new_point.x] = true; // Mark as visited
+                if self.is_within_bounds(new_point) && !visited[new_point.y][new_point.x] {
+                    if self.cells[new_point.y][new_point.x] == CellType::Blank
+                        || self.cells[new_point.y][new_point.x] == CellType::Destination
+                    {
+                        queue.push_back(new_point);
+                        visited[new_point.y][new_point.x] = true; // Mark as visited
+                    }
                 }
             }
         }
@@ -293,10 +302,17 @@ impl Grid {
 
     fn construct_path(cells: HashMap<Point, Cell>, dest: Point) -> Vec<Point> {
         let mut path = vec![];
-        let mut current = dest;
-        while let Some(&node) = cells[&current].parent.as_ref() {
+        let mut current = Point {
+            x: dest.y,
+            y: dest.x,
+        };
+
+        while let Some(node) = cells[&current].parent {
             current = node;
-            path.push(current);
+            path.push(Point {
+                x: current.y,
+                y: current.x,
+            });
         }
         // remove the start
         path.pop();
@@ -304,22 +320,11 @@ impl Grid {
         path
     }
     /// a_star path finding algorithm
-    ///
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use path_algorithms::Grid;
-    ///
-    /// let mut grid = ;
-    /// let result = grid.a_star(src, dest);
-    /// assert_eq!(result, );
-    /// assert_eq!(grid, );
-    /// ```
     pub fn a_star(&mut self, src: Point, dest: Point) -> Option<(Vec<Point>, Vec<Point>, f32)> {
         let time = Instant::now();
-        let mut open_list = BinaryHeap::<Reverse<Point>>::new();
-        let mut closed_list = vec![vec![false; self.width]; self.height];
+        // let mut open_list = BinaryHeap::<Reverse<(usize, Point)>>::new();
+        let mut open_list = Vec::<(usize, Point)>::new();
+        // let mut closed_list = vec![vec![false; self.width]; self.height];
         let mut visited = Vec::<Point>::new();
 
         let mut cells = HashMap::<Point, Cell>::new();
@@ -329,7 +334,7 @@ impl Grid {
             }
         }
         cells.insert(
-            src,
+            Point { x: src.y, y: src.x },
             Cell {
                 f: 0,
                 g: 0,
@@ -338,61 +343,124 @@ impl Grid {
             },
         );
 
-        open_list.push(Reverse(src));
+        // open_list.push(Reverse((0, Point { x: src.y, y: src.x })));
+        open_list.push((
+            Self::heuristic(Point { x: src.y, y: src.x }, dest),
+            Point { x: src.y, y: src.x },
+        ));
         while let Some(x) = open_list.pop() {
-            let current = x.0;
-            let Point { x, y } = current;
-            closed_list[y][x] = true;
-
-            if self.cells[x][y] == CellType::Destination {
-                let mut path = Self::construct_path(cells, dest);
-                // Path is found, mark the cells in the path
-                let mut path_num = 1;
-                for node in &path {
-                    self.cells[node.y][node.x] = CellType::Visited(path_num);
-                    path_num += 1;
-                }
-                let duration = time.elapsed();
-                // removing the destination_point from the path
-                path.pop();
-                return Some((path, visited, duration.as_secs_f32()));
+            let current = x;
+            let Point { x, y } = current.1;
+            // closed_list[y][x] = true;
+            if !visited.contains(&Point {
+                x: current.1.y,
+                y: current.1.x,
+            }) {
+                visited.push(Point {
+                    x: current.1.y,
+                    y: current.1.x,
+                });
             }
 
-            let directions = [
+            if self.cells[y][x] == CellType::Destination {
+                // Path is found, mark the cells in the path
+                let path = Self::construct_path(cells, dest);
+                // removing start and destination from the visited
+                if visited.contains(&Point { x: src.x, y: src.y }) {
+                    visited.remove(
+                        visited
+                            .iter()
+                            .position(|&i| i == Point { x: src.x, y: src.y })
+                            .unwrap(),
+                    );
+                }
+                if visited.contains(&Point {
+                    x: dest.x,
+                    y: dest.y,
+                }) {
+                    visited.remove(
+                        visited
+                            .iter()
+                            .position(|&i| {
+                                i == Point {
+                                    x: dest.x,
+                                    y: dest.y,
+                                }
+                            })
+                            .unwrap(),
+                    );
+                }
+                let duration = time.elapsed();
+                return Some((path, visited, duration.as_secs_f32()));
+            }
+            let mut directions = [
                 (-1, 0), // Up
                 (0, 1),  // Right
                 (1, 0),  // Down
                 (0, -1), // Left
             ];
+            let mut heu = Vec::new();
+            for i in directions {
+                heu.push(Self::heuristic(
+                    Point {
+                        x: (x as isize + i.0) as usize,
+                        y: (y as isize + i.1) as usize,
+                    },
+                    dest,
+                ));
+            }
+            for i in 0..heu.len() {
+                // Assume the current index has the minimum value
+                let mut min_index = i;
 
+                // Find the index of the smallest element in the remaining unsorted portion
+                for j in (i + 1)..heu.len() {
+                    if heu[j] < heu[min_index] {
+                        min_index = j;
+                    }
+                }
+
+                // Swap the current element with the smallest element found
+                if min_index != i {
+                    heu.swap(i, min_index);
+                    directions.swap(i, min_index);
+                }
+            }
+            println!("{:?}", directions);
             for (dx, dy) in &directions {
                 let new_x = (x as isize + dx) as usize;
                 let new_y = (y as isize + dy) as usize;
 
                 if self.is_within_bounds(Point { x: new_x, y: new_y })
-                    && self.cells[new_y][new_x] != CellType::Block
+                    // && !closed_list[new_y][new_x]
+                    && (self.cells[new_y][new_x] == CellType::Blank
+                        || self.cells[new_y][new_x] == CellType::Destination)
                 {
                     let new_point = Point { x: new_x, y: new_y };
-                    if !visited.contains(&Point { x: new_y, y: new_x }) {
-                        visited.push(Point { x: new_y, y: new_x });
-                    }
 
-                    let tentative_g_score = cells.get(&current).unwrap().g + 1;
+                    let tentative_g_score = cells.get(&current.1).unwrap().g + 1;
                     let tentative_h_score = Self::heuristic(Point { x: new_x, y: new_y }, dest);
                     let tentative_f_score = tentative_g_score + tentative_h_score;
 
-                    if cells.get(&current).unwrap().g < cells.get(&new_point).unwrap().g {
+                    if cells.get(&new_point).unwrap().g == usize::MAX
+                        || tentative_g_score < cells.get(&new_point).unwrap().g
+                    {
                         cells.insert(
                             new_point,
                             Cell {
                                 f: tentative_f_score,
                                 h: tentative_h_score,
                                 g: tentative_g_score,
-                                parent: Some(current),
+                                parent: Some(current.1),
                             },
                         );
-                        if !open_list.iter().any(|heap_item| heap_item.0 == new_point) {
-                            open_list.push(Reverse(new_point));
+                        // if !open_list
+                        //     .iter()
+                        //     .any(|heap_item| heap_item.0 .1 == new_point)
+                        if !open_list.iter().any(|x| x.1 == new_point) {
+                            // open_list.push(Reverse((tentative_f_score, new_point)));
+                            open_list.push((tentative_f_score, new_point));
+                            open_list.sort_by_key(|&(f_score, _)| f_score);
                         }
                     }
                 }

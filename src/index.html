@@ -1,46 +1,62 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="stylesheet" href="styles.css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tauri App</title>
-    <script type="module" src="/main.js" defer></script>
-    <style>
-      .logo.vanilla:hover {
-        filter: drop-shadow(0 0 2em #ffe21c);
-      }
-    </style>
-  </head>
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="stylesheet" href="styles.css" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Tauri App</title>
+		<script type="module" src="/main.js" defer></script>
+		<style>
+			.logo.vanilla:hover {
+				filter: drop-shadow(0 0 2em #ffe21c);
+			}
+		</style>
+	</head>
 
-  <body>
-    <div class="container">
-      <h1>Welcome to Tauri!</h1>
+	<body>
+		<!-- <div class="container">
+			<h1>Welcome to Tauri!</h1>
 
-      <div class="row">
-        <a href="https://tauri.app" target="_blank">
-          <img src="/assets/tauri.svg" class="logo tauri" alt="Tauri logo" />
-        </a>
-        <a
-          href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"
-          target="_blank"
-        >
-          <img
-            src="/assets/javascript.svg"
-            class="logo vanilla"
-            alt="JavaScript logo"
-          />
-        </a>
-      </div>
+			<div class="row">
+				<a href="https://tauri.app" target="_blank">
+					<img src="/assets/tauri.svg" class="logo tauri" alt="Tauri logo" />
+				</a>
+				<a
+					href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"
+					target="_blank"
+				>
+					<img
+						src="/assets/javascript.svg"
+						class="logo vanilla"
+						alt="JavaScript logo"
+					/>
+				</a>
+			</div>
 
-      <p>Click on the Tauri logo to learn more about the framework</p>
+			<p>Click on the Tauri logo to learn more about the framework</p>
 
-      <form class="row" id="greet-form">
-        <input id="greet-input" placeholder="Enter a name..." />
-        <button type="submit">Greet</button>
-      </form>
+			<form class="row" id="greet-form">
+				<input id="greet-input" placeholder="Enter a name..." />
+				<button type="submit">Greet</button>
+			</form>
 
-      <p id="greet-msg"></p>
-    </div>
-  </body>
+			<p id="greet-msg"></p> -->
+			<div class="d-flex justify-content-center mb-2">
+				<canvas id="maze-canvas" width="900" height="600"></canvas>
+			</div>
+			<button class="button" id="btn_randgrid">Generate random grid</button>
+			<button class="button" id="btn_clear">Clear</button>
+			<button class="button" id="btn_solve">Solve</button>
+			<select name="algorithms" id="algs">
+  				<option value="dfs">DFS</option>
+  				<option value="bfs">BFS</option>
+  				<option value="a*">A*</option>
+			</select>
+			<select name="mouseAction" id="action">
+  				<option value="block">Block</option>
+  				<option value="start">Start</option>
+  				<option value="dest">Destination</option>
+			</select>
+		</div>
+	</body>
 </html>

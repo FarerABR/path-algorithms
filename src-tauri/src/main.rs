@@ -3,7 +3,8 @@
 #![allow(special_module_name)]
 
 mod lib;
-use lib::{ser_to_cell, CellType, Grid, Point};
+#[allow(unused_imports)]
+use lib::{ser_to_cell, ser_to_string, CellType, Grid, Point};
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -66,61 +67,32 @@ async fn a_star_solve(
     }
 }
 
+#[tauri::command(rename_all = "snake_case")]
+fn make_random_grid(width: usize, height: usize) -> Vec<Vec<String>> {
+    let grid = Grid::random_grid(width, height);
+    ser_to_string(&grid.cells)
+}
+
 fn main() {
     // let cells = vec![
-    //     vec![
-    //         CellType::Start,
-    //         CellType::Blank,
-    //         CellType::Blank,
-    //         CellType::Block,
-    //     ],
-    //     vec![
-    //         CellType::Block,
-    //         CellType::Blank,
-    //         CellType::Blank,
-    //         CellType::Block,
-    //     ],
-    //     vec![
-    //         CellType::Block,
-    //         CellType::Block,
-    //         CellType::Blank,
-    //         CellType::Blank,
-    //     ],
-    //     vec![
-    //         CellType::Block,
-    //         CellType::Block,
-    //         CellType::Destination,
-    //         CellType::Blank,
+    //     vec![CellType::Blank, CellType::Blank, CellType::Blank, CellType::Blank, CellType::Blank, CellType::Block,],
+    //     vec![CellType::Blank, CellType::Blank, CellType::Blank, CellType::Block, CellType::Blank, CellType::Block,],
+    //     vec![CellType::Blank, CellType::Blank, CellType::Blank, CellType::Blank, CellType::Block, CellType::Blank,],
+    //     vec![CellType::Block, CellType::Start, CellType::Block, CellType::Blank, CellType::Blank, CellType::Destination,
     //     ],
     // ];
-
     // let mut grid = Grid::new(cells);
+    // let a=grid.a_star(Point { x: 3, y: 1 },Point{ x: 3, y: 5 }).unwrap();
+    // println!("the final grid is: {:?}", grid.cells);
+    // println!("visited nodes: {:?}", a.1);
 
-    // let start_point = Point { x: 0, y: 0 };
-    // let dest = Point { x: 3, y: 3 };
-
-    // if let Some((path, visited, duration)) = grid.a_star(start_point, dest) {
-    //     println!("Path found:");
-    //     for point in &path {
-    //         println!("({}, {})", point.x, point.y);
-    //     }
-    //     println!("visited nodes found:");
-    //     for point in &visited {
-    //         println!("({}, {})", point.x, point.y);
-    //     }
-    //     println!("Elapsed time: {:.3} seconds", duration);
-
-    //     println!("{:?}", grid.cells);
-    // } else {
-    //     println!("No path found.");
-    // }
-    Grid::construct_grid(7, 6);
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             greet,
             dfs_solve,
             bfs_solve,
-            a_star_solve
+            a_star_solve,
+            make_random_grid
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

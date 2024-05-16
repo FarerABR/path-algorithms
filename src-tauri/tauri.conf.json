@@ -10,6 +10,14 @@
   },
   "tauri": {
     "allowlist": {
+      "dialog": {
+        "all": true,
+        "ask": true,
+        "confirm": true,
+        "message": true,
+        "open": true,
+        "save": true
+      },
       "all": false,
       "shell": {
         "all": false,
@@ -19,8 +27,8 @@
     "windows": [
       {
         "title": "path-algorithms",
-        "width": 800,
-        "height": 600
+        "width": 900,
+        "height": 1000
       }
     ],
     "security": {
