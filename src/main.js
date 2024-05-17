@@ -249,6 +249,7 @@ async function solve() {
 	disable_btns();
 	open_nodes.textContent = "";
 	visit_nodes.textContent = "";
+	lbl_time.textContent = "";
 	clear_canvas();
 	drawMaze(maze);
 	let alg = select_alg.value;
@@ -279,7 +280,7 @@ async function solve() {
 		const path = algorithm[0];
 		const visited = algorithm[1];
 		const time = algorithm[2];
-		lbl_time.textContent = (time*1000).toPrecision(3)+" ms";
+		lbl_time.textContent = (time * 1000).toPrecision(3) + " ms";
 
 		await draw_visited(visited);
 		draw_path(path);
@@ -287,18 +288,21 @@ async function solve() {
 		// dfs and bfs
 		const path = algorithm[0];
 		const time = algorithm[1];
-		lbl_time.textContent = (time * 1000).toPrecision(3)+" ms";
+		lbl_time.textContent = (time * 1000).toPrecision(3) + " ms";
 
-		draw_path(path);
+		draw_path(path, true);
 	}
 }
 
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
 
-async function draw_path(path) {
+async function draw_path(path, dfs_bfs) {
 	// console.log(path);
 	for (let i = 1; i < path.length + 1; i++) {
 		open_nodes.textContent = i;
+		if (dfs_bfs) {
+			visit_nodes.textContent = i;
+		}
 		const x = path[i - 1][1];
 		const y = path[i - 1][0];
 
@@ -311,17 +315,18 @@ async function draw_path(path) {
 		ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
 		ctx.fill();
 
-		ctx.font = "10px Arial";
-		ctx.fillStyle = "black";
-		// Calculate the width of the text
-		const textWidth = ctx.measureText(i).width;
-		// Calculate the x-coordinate to center the text horizontally within the cell
-		const textX = x * cellSize + (cellSize - textWidth) / 2;
-		// Calculate the y-coordinate to center the text vertically within the cell
-		const textY = y * cellSize + cellSize / 2 + 10 / 4;
-		// Draw the text
-		ctx.fillText(i, textX, textY);
-
+		if (radius > 6) {
+			ctx.font = "10px Arial";
+			ctx.fillStyle = "black";
+			// Calculate the width of the text
+			const textWidth = ctx.measureText(i).width;
+			// Calculate the x-coordinate to center the text horizontally within the cell
+			const textX = x * cellSize + (cellSize - textWidth) / 2;
+			// Calculate the y-coordinate to center the text vertically within the cell
+			const textY = y * cellSize + cellSize / 2 + 10 / 4;
+			// Draw the text
+			ctx.fillText(i, textX, textY);
+		}
 		await timer(50);
 	}
 	enable_btns();
