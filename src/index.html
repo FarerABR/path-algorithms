@@ -14,33 +14,6 @@
 	</head>
 
 	<body>
-		<!-- <div class="container">
-			<h1>Welcome to Tauri!</h1>
-
-			<div class="row">
-				<a href="https://tauri.app" target="_blank">
-					<img src="/assets/tauri.svg" class="logo tauri" alt="Tauri logo" />
-				</a>
-				<a
-					href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"
-					target="_blank"
-				>
-					<img
-						src="/assets/javascript.svg"
-						class="logo vanilla"
-						alt="JavaScript logo"
-					/>
-				</a>
-			</div>
-
-			<p>Click on the Tauri logo to learn more about the framework</p>
-
-			<form class="row" id="greet-form">
-				<input id="greet-input" placeholder="Enter a name..." />
-				<button type="submit">Greet</button>
-			</form>
-
-			<p id="greet-msg"></p> -->
 			<div class="d-flex justify-content-center mb-2">
 				<canvas id="maze-canvas" width="900" height="600"></canvas>
 			</div>
@@ -58,12 +31,20 @@
   				<option value="dest">Destination</option>
 			</select>
 			<div>
-				<label>Nodes opened: </label>
-				<label id="lbl_open"></label>
+				<div>
+					<label>Nodes opened: </label>
+					<label id="lbl_open"></label>
+				</div>
+				<div>
+					<label>Nodes visited: </label>
+					<label id="lbl_visit"></label>
+				</div>
 			</div>
 			<div>
-				<label>Nodes visited: </label>
-				<label id="lbl_visit"></label>
+				<label for="in_width">Width: </label>
+				<input name="in_width" id="width" type="number" min="5">
+				<label for="in_height">Height: </label>
+				<input name="in_height" id="height" type="number" min="5">
 			</div>
 		</div>
 	</body>

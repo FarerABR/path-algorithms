@@ -6,9 +6,11 @@ let solve_btn = document.getElementById("btn_solve");
 grid_btn.addEventListener("click", random_grid);
 clear_btn.addEventListener("click", clear_all);
 solve_btn.addEventListener("click", solve);
-// document.getElementById("btn_randgrid").addEventListener("click", random_grid);
-// document.getElementById("btn_clear").addEventListener("click", clear_all);
-// document.getElementById("btn_solve").addEventListener("click", solve);
+
+let width_in = document.getElementById("width");
+let height_in = document.getElementById("height");
+let width = parseInt(width_in.value, 10);
+let height = parseInt(height_in.value, 10);
 
 const select_alg = document.getElementById("algs");
 let open_nodes = document.getElementById("lbl_open");
@@ -31,6 +33,8 @@ let cellSize = Math.min(
 window.addEventListener("DOMContentLoaded", () => {
 	points.start = { x: 0, y: 0 };
 	points.destination = { x: 1, y: 1 };
+	width_in.value = "40";
+	height_in.value = "50";
 	disable_btns();
 	random_grid();
 });
@@ -96,72 +100,22 @@ mazeCanvas.addEventListener("click", function (event) {
 		}
 	}
 });
-function disable_btns() {
-	grid_btn.toggleAttribute("disabled");
-	clear_btn.toggleAttribute("disabled");
-	solve_btn.toggleAttribute("disabled");
-}
-function enable_btns() {
-	grid_btn.disabled = false;
-	clear_btn.disabled = false;
-	solve_btn.disabled = false;
-}
-
-async function solve() {
-	disable_btns();
-	open_nodes.textContent = "";
-	visit_nodes.textContent = "";
-	clear_canvas();
-	drawMaze(maze);
-	let alg = select_alg.value;
-	// console.log(alg);
-	// console.log(maze);
-	// console.log(points.start.x, points.start.y);
-	// console.log(points.destination.x, points.destination.y);
-	let algorithm;
-	if (alg === "dfs") {
-		algorithm = await invoke("dfs_solve", {
-			arr: maze,
-			start: [points.start.x, points.start.y],
-		});
-	} else if (alg === "bfs") {
-		algorithm = await invoke("bfs_solve", {
-			arr: maze,
-			start: [points.start.x, points.start.y],
-		});
-	} else {
-		algorithm = await invoke("a_star_solve", {
-			arr: maze,
-			start: [points.start.x, points.start.y],
-			dest: [points.destination.x, points.destination.y],
-		});
-	}
-	if (algorithm === null || algorithm[0].length === 0) {
-		alert("No path found");
-		enable_btns();
-	} else if (algorithm.length === 3) {
-		// a_start
-		const path = algorithm[0];
-		const visited = algorithm[1];
-		const time = algorithm[2];
-		console.log("Time : ", time);
-		await draw_visited(visited);
-		draw_path(path);
-	} else {
-		// dfs and bfs
-		const path = algorithm[0];
-		const time = algorithm[1];
-		console.log("Time : ", time);
-		draw_path(path);
-	}
-	// enable_btns();
-}
 
 async function random_grid() {
+	const context = mazeCanvas.getContext("2d");
+	context.clearRect(0, 0, mazeCanvas.width, mazeCanvas.height);
+	mazeHeight = parseInt(width_in.value, 10);
+	mazeWidth = parseInt(height_in.value, 10);
+	cellSize = Math.min(
+		mazeCanvas.width / mazeWidth,
+		mazeCanvas.height / mazeHeight
+	);
 	clear_canvas();
-	maze = await invoke("make_random_grid", { width: 20, height: 30 });
-	mazeHeight = maze.length;
-	mazeWidth = maze[0].length;
+	maze = await invoke("make_random_grid", {
+		width: parseInt(width_in.value, 10),
+		height: parseInt(height_in.value, 10),
+	});
+
 	points.start.x = maze.findIndex((row) => row.includes("start"));
 	points.start.y =
 		maze[maze.findIndex((row) => row.includes("start"))].indexOf("start");
@@ -170,9 +124,7 @@ async function random_grid() {
 		maze[maze.findIndex((row) => row.includes("destination"))].indexOf(
 			"destination"
 		);
-	console.log(maze);
-	console.log(points.start);
-	console.log(points.destination);
+
 	drawMaze(maze);
 }
 
@@ -183,6 +135,14 @@ function clear_canvas() {
 	drawMaze(clear);
 }
 function clear_all() {
+	const context = mazeCanvas.getContext("2d");
+	context.clearRect(0, 0, mazeCanvas.width, mazeCanvas.height);
+	mazeHeight = parseInt(width_in.value, 10);
+	mazeWidth = parseInt(height_in.value, 10);
+	cellSize = Math.min(
+		mazeCanvas.width / mazeWidth,
+		mazeCanvas.height / mazeHeight
+	);
 	let clear = new Array(mazeHeight)
 		.fill(null)
 		.map(() => new Array(mazeWidth).fill("blank"));
@@ -227,10 +187,17 @@ function drawMaze(maze) {
 			} else if (maze[y][x] === "start") {
 				ctx.fillStyle = "white"; // Empty cell
 				ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-
-				ctx.fillStyle = "#1C6758"; // Start point
+				ctx.fillStyle = "Blue"; // Start point
 				ctx.beginPath();
 				ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+				ctx.fill();
+				ctx.fillStyle = "White"; // Start point
+				ctx.beginPath();
+				ctx.arc(centerX, centerY, radius - radius / 10, 0, 2 * Math.PI);
+				ctx.fill();
+				ctx.fillStyle = "#1C6758"; // Start point
+				ctx.beginPath();
+				ctx.arc(centerX, centerY, radius - radius / 5, 0, 2 * Math.PI);
 				ctx.fill();
 
 				ctx.font = "10px Arial";
@@ -246,10 +213,17 @@ function drawMaze(maze) {
 			} else if (maze[y][x] === "destination") {
 				ctx.fillStyle = "white"; // Empty cell
 				ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-
-				ctx.fillStyle = "#BE0000"; // Destination point
+				ctx.fillStyle = "Black";
 				ctx.beginPath();
 				ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+				ctx.fill();
+				ctx.fillStyle = "Yellow";
+				ctx.beginPath();
+				ctx.arc(centerX, centerY, radius - radius / 10, 0, 2 * Math.PI);
+				ctx.fill();
+				ctx.fillStyle = "#BE0000"; // Destination point
+				ctx.beginPath();
+				ctx.arc(centerX, centerY, radius - radius / 5, 0, 2 * Math.PI);
 				ctx.fill();
 
 				ctx.font = "10px Arial";
@@ -269,6 +243,52 @@ function drawMaze(maze) {
 		}
 	}
 	// disable_btns();
+}
+async function solve() {
+	disable_btns();
+	open_nodes.textContent = "";
+	visit_nodes.textContent = "";
+	clear_canvas();
+	drawMaze(maze);
+	let alg = select_alg.value;
+
+	let algorithm;
+	if (alg === "dfs") {
+		algorithm = await invoke("dfs_solve", {
+			arr: maze,
+			start: [points.start.x, points.start.y],
+		});
+	} else if (alg === "bfs") {
+		algorithm = await invoke("bfs_solve", {
+			arr: maze,
+			start: [points.start.x, points.start.y],
+		});
+	} else {
+		algorithm = await invoke("a_star_solve", {
+			arr: maze,
+			start: [points.start.x, points.start.y],
+			dest: [points.destination.x, points.destination.y],
+		});
+	}
+	if (algorithm === null || algorithm[0].length === 0) {
+		alert("No path found");
+		enable_btns();
+	} else if (algorithm.length === 3) {
+		// a_start
+		const path = algorithm[0];
+		const visited = algorithm[1];
+		const time = algorithm[2];
+		console.log("Time : ", time);
+		await draw_visited(visited);
+		draw_path(path);
+	} else {
+		// dfs and bfs
+		const path = algorithm[0];
+		const time = algorithm[1];
+		console.log("Time : ", time);
+		draw_path(path);
+	}
+	// enable_btns();
 }
 
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
@@ -323,4 +343,14 @@ async function draw_visited(visited) {
 
 		await timer(50);
 	}
+}
+function disable_btns() {
+	grid_btn.toggleAttribute("disabled");
+	clear_btn.toggleAttribute("disabled");
+	solve_btn.toggleAttribute("disabled");
+}
+function enable_btns() {
+	grid_btn.disabled = false;
+	clear_btn.disabled = false;
+	solve_btn.disabled = false;
 }

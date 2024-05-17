@@ -198,11 +198,11 @@ impl Grid {
                 // the path is currenly transvesed
                 // removing the destination_point from the path
                 path.pop();
-                let mut path_num = 1;
-                for node in &path {
-                    self.cells[node.x][node.y] = CellType::Visited(path_num);
-                    path_num += 1;
-                }
+                // let mut path_num = 1;
+                // for node in &path {
+                //     self.cells[node.x][node.y] = CellType::Visited(path_num);
+                //     path_num += 1;
+                // }
                 let duration = time.elapsed();
                 return Some((path, duration.as_secs_f32()));
             }
@@ -264,11 +264,11 @@ impl Grid {
 
                 // removing the destination_point from the path
                 path.pop();
-                let mut path_num = 1;
-                for node in &path {
-                    self.cells[node.x][node.y] = CellType::Visited(path_num);
-                    path_num += 1;
-                }
+                // let mut path_num = 1;
+                // for node in &path {
+                //     self.cells[node.x][node.y] = CellType::Visited(path_num);
+                //     path_num += 1;
+                // }
                 let duration = time.elapsed();
                 return Some((path, duration.as_secs_f32()));
             }
