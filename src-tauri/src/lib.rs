@@ -40,8 +40,8 @@ pub fn ser_to_string(arr: &Vec<Vec<CellType>>) -> Vec<Vec<String>> {
     out
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
 #[allow(dead_code)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum CellType {
     Blank,
     Start,
