@@ -18,25 +18,25 @@
         "open": true,
         "save": true
       },
-      "updater": {
-        "active": true,
-        "endpoints": [
-          "https://github.com/FarerABR/path-algorithms/releases/{{target}}/{{arch}}/{{current_version}}"
-        ],
-        "dialog": true,
-        "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE3ODRBNTVCNDFGRDQ4NEIKUldSTFNQMUJXNldFRjBKd0ljY01GQ3J2ZDZiTkZVOUlMejFsQVV4WjNTSTl0bC9OTTdwTnBVVFoK"
-      },
       "all": false,
       "shell": {
         "all": false,
         "open": true
       }
     },
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://github.com/FarerABR/path-algorithms/releases/{{target}}/{{arch}}/{{current_version}}"
+      ],
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE3ODRBNTVCNDFGRDQ4NEIKUldSTFNQMUJXNldFRjBKd0ljY01GQ3J2ZDZiTkZVOUlMejFsQVV4WjNTSTl0bC9OTTdwTnBVVFoK"
+    },
     "windows": [
       {
         "title": "path-algorithms",
         "width": 1200,
-        "height": 900
+        "height": 1000
       }
     ],
     "security": {

@@ -15,6 +15,7 @@ let height = parseInt(height_in.value, 10);
 const select_alg = document.getElementById("algs");
 let open_nodes = document.getElementById("lbl_open");
 let visit_nodes = document.getElementById("lbl_visit");
+let lbl_time = document.getElementById("lbl_time");
 
 // Canvas and context for visualization
 const mazeCanvas = document.getElementById("maze-canvas");
@@ -278,17 +279,18 @@ async function solve() {
 		const path = algorithm[0];
 		const visited = algorithm[1];
 		const time = algorithm[2];
-		console.log("Time : ", time);
+		lbl_time.textContent = (time*1000).toPrecision(3)+" ms";
+
 		await draw_visited(visited);
 		draw_path(path);
 	} else {
 		// dfs and bfs
 		const path = algorithm[0];
 		const time = algorithm[1];
-		console.log("Time : ", time);
+		lbl_time.textContent = (time * 1000).toPrecision(3)+" ms";
+
 		draw_path(path);
 	}
-	// enable_btns();
 }
 
 const timer = (ms) => new Promise((res) => setTimeout(res, ms));
